@@ -15,14 +15,14 @@ export interface MessageContent {
 }
 
 export interface ResponseMetrics {
-	ttft: number; // time to first visible token (ms)
-	ttfrt: number | null; // time to first reasoning token (ms), null if no reasoning
-	totalTime: number; // total generation time (ms)
-	tokenCount: number; // visible output tokens
-	reasoningTokenCount: number; // reasoning/thinking tokens
-	promptTokens: number | null; // from API usage (null if unavailable)
-	tps: number; // visible tokens per second
-	totalTps: number; // all tokens per second (incl reasoning)
+	ttft: number;
+	ttfrt: number | null;
+	totalTime: number;
+	tokenCount: number;
+	reasoningTokenCount: number;
+	promptTokens: number | null;
+	tps: number;
+	totalTps: number;
 }
 
 export interface Conversation {
@@ -33,7 +33,8 @@ export interface Conversation {
 	updatedAt: number;
 }
 
-export interface Settings {
+/** Server-persisted API/model settings */
+export interface ApiSettings {
 	apiUrl: string;
 	apiKey: string;
 	model: string;
@@ -45,8 +46,29 @@ export interface Settings {
 	minP: number;
 	presencePenalty: number;
 	repetitionPenalty: number;
+}
+
+export const defaultApiSettings: ApiSettings = {
+	apiUrl: '',
+	apiKey: '',
+	model: '',
+	systemPrompt: 'You are a helpful assistant.',
+	temperature: 1.0,
+	maxTokens: 4096,
+	topP: 0.95,
+	topK: 20,
+	minP: 0.0,
+	presencePenalty: 1.5,
+	repetitionPenalty: 1.0
+};
+
+/** Client-only UI preferences stored in localStorage */
+export interface UiPreferences {
 	darkMode: boolean;
 }
+
+/** Combined settings used in the UI */
+export type Settings = ApiSettings & UiPreferences;
 
 export interface ImageAttachment {
 	dataUrl: string;

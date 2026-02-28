@@ -95,13 +95,15 @@ export async function* streamChat(
 				const delta = parsed.choices?.[0]?.delta;
 				if (!delta) continue;
 
-				// Reasoning/thinking content (e.g. Qwen3, DeepSeek)
-				if (delta.reasoning_content) {
-					yield { type: 'reasoning', text: delta.reasoning_content };
+				// Reasoning/thinking content
+				// sglang uses delta.reasoning_content, OpenRouter uses delta.reasoning
+				const reasoningText = delta.reasoning_content || delta.reasoning;
+				if (reasoningText) {
+					yield { type: 'reasoning', text: reasoningText };
 				}
 
-				// Regular content
-				if (delta.content) {
+				// Regular content (check for non-empty string, not just truthiness)
+				if (typeof delta.content === 'string' && delta.content.length > 0) {
 					yield { type: 'text', text: delta.content };
 				}
 			} catch {

@@ -1,63 +1,24 @@
 import { browser } from '$app/environment';
-import type { Conversation, Settings } from './types';
+import type { UiPreferences } from './types';
 
-const CONVERSATIONS_KEY = 'bland-chat-conversations';
-const SETTINGS_KEY = 'bland-chat-settings';
+const UI_PREFS_KEY = 'bland-chat-ui-prefs';
 
-export const defaultSettings: Settings = {
-	apiUrl: '',
-	apiKey: '',
-	model: '',
-	systemPrompt: 'You are a helpful assistant.',
-	temperature: 1.0,
-	maxTokens: 4096,
-	topP: 0.95,
-	topK: 20,
-	minP: 0.0,
-	presencePenalty: 1.5,
-	repetitionPenalty: 1.0,
+export const defaultUiPreferences: UiPreferences = {
 	darkMode: false
 };
 
-export function loadSettings(): Settings {
-	if (!browser) return { ...defaultSettings };
+export function loadUiPreferences(): UiPreferences {
+	if (!browser) return { ...defaultUiPreferences };
 	try {
-		const raw = localStorage.getItem(SETTINGS_KEY);
-		if (raw) {
-			const saved = JSON.parse(raw);
-			return { ...defaultSettings, ...saved };
-		}
+		const raw = localStorage.getItem(UI_PREFS_KEY);
+		if (raw) return { ...defaultUiPreferences, ...JSON.parse(raw) };
 	} catch {}
-	return { ...defaultSettings };
+	return { ...defaultUiPreferences };
 }
 
-export function saveSettings(settings: Settings): void {
+export function saveUiPreferences(prefs: UiPreferences): void {
 	if (!browser) return;
-	localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-}
-
-export function loadConversations(): Conversation[] {
-	if (!browser) return [];
-	try {
-		const raw = localStorage.getItem(CONVERSATIONS_KEY);
-		if (raw) return JSON.parse(raw);
-	} catch {}
-	return [];
-}
-
-export function saveConversations(conversations: Conversation[]): void {
-	if (!browser) return;
-	localStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(conversations));
-}
-
-export function createConversation(): Conversation {
-	return {
-		id: crypto.randomUUID(),
-		title: 'New chat',
-		messages: [],
-		createdAt: Date.now(),
-		updatedAt: Date.now()
-	};
+	localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
 }
 
 export function generateTitle(firstMessage: string): string {
