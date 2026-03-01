@@ -6,7 +6,7 @@ COPY package.json bun.lock .npmrc ./
 RUN bun install --frozen-lockfile
 
 COPY . .
-RUN bun run build
+RUN mkdir -p /app/data && bun run build
 
 FROM oven/bun:1-slim AS runtime
 
