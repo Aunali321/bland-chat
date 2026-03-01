@@ -39,13 +39,13 @@ export interface ApiSettings {
 	apiKey: string;
 	model: string;
 	systemPrompt: string;
-	temperature: number;
-	maxTokens: number;
-	topP: number;
-	topK: number;
-	minP: number;
-	presencePenalty: number;
-	repetitionPenalty: number;
+	temperature: number | null;
+	maxTokens: number | null;
+	topP: number | null;
+	topK: number | null;
+	minP: number | null;
+	presencePenalty: number | null;
+	repetitionPenalty: number | null;
 }
 
 export const defaultApiSettings: ApiSettings = {
@@ -53,14 +53,25 @@ export const defaultApiSettings: ApiSettings = {
 	apiKey: '',
 	model: '',
 	systemPrompt: 'You are a helpful assistant.',
-	temperature: 1.0,
-	maxTokens: 4096,
-	topP: 0.95,
-	topK: 20,
-	minP: 0.0,
-	presencePenalty: 1.5,
-	repetitionPenalty: 1.0
+	temperature: null,
+	maxTokens: null,
+	topP: null,
+	topK: null,
+	minP: null,
+	presencePenalty: null,
+	repetitionPenalty: null
 };
+
+/** Hyperparam field names for iteration */
+export const hyperparamKeys = [
+	'temperature',
+	'maxTokens',
+	'topP',
+	'topK',
+	'minP',
+	'presencePenalty',
+	'repetitionPenalty'
+] as const satisfies readonly (keyof ApiSettings)[];
 
 /** Client-only UI preferences stored in localStorage */
 export interface UiPreferences {

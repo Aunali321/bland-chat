@@ -13,7 +13,6 @@
 		onStartEdit: (id: string, title: string) => void;
 		onFinishEdit: () => void;
 		onEditValueChange: (value: string) => void;
-		onToggleSettings: () => void;
 		onToggleDarkMode: () => void;
 	}
 
@@ -29,11 +28,15 @@
 		onStartEdit,
 		onFinishEdit,
 		onEditValueChange,
-		onToggleSettings,
 		onToggleDarkMode
 	}: Props = $props();
 
 	const sorted = $derived([...conversations].sort((a, b) => b.updatedAt - a.updatedAt));
+
+	/** Svelte action that focuses the node when it is mounted */
+	function focusOnMount(node: HTMLElement) {
+		node.focus();
+	}
 </script>
 
 <aside
@@ -60,15 +63,15 @@
 					: 'hover:bg-(--color-surface-hover)'} transition-colors"
 			>
 				{#if editingTitle === conv.id}
-					<input
-						type="text"
-						value={editTitleValue}
-						oninput={(e) => onEditValueChange((e.target as HTMLInputElement).value)}
-						onblur={onFinishEdit}
-						onkeydown={(e) => e.key === 'Enter' && onFinishEdit()}
-						class="flex-1 px-3 py-2 text-sm bg-transparent border-none outline-none"
-						autofocus
-					/>
+				<input
+					type="text"
+					value={editTitleValue}
+					oninput={(e) => onEditValueChange((e.target as HTMLInputElement).value)}
+					onblur={onFinishEdit}
+					onkeydown={(e) => e.key === 'Enter' && onFinishEdit()}
+					class="flex-1 px-3 py-2 text-sm bg-transparent border-none outline-none"
+					use:focusOnMount
+				/>
 				{:else}
 					<button
 						onclick={() => onSelect(conv.id)}
@@ -92,12 +95,12 @@
 	</div>
 
 	<div class="p-3 border-t border-(--color-border) flex gap-2">
-		<button
-			onclick={onToggleSettings}
-			class="flex-1 px-3 py-2 text-sm rounded-lg hover:bg-(--color-bg-tertiary) transition-colors cursor-pointer text-(--color-text-secondary) bg-transparent border border-(--color-border)"
+		<a
+			href="/settings"
+			class="flex-1 px-3 py-2 text-sm rounded-lg hover:bg-(--color-bg-tertiary) transition-colors text-(--color-text-secondary) border border-(--color-border) text-center no-underline"
 		>
 			Settings
-		</button>
+		</a>
 		<button
 			onclick={onToggleDarkMode}
 			class="px-3 py-2 text-sm rounded-lg hover:bg-(--color-bg-tertiary) transition-colors cursor-pointer text-(--color-text-secondary) bg-transparent border border-(--color-border)"

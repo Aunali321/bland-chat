@@ -10,9 +10,18 @@ export interface StreamEvent {
 	};
 }
 
+/**
+ * Stream a chat completion via the SvelteKit `/api/chat` server endpoint.
+ *
+ * Routing through the server endpoint avoids CORS restrictions when calling
+ * third-party OpenAI-compatible APIs directly from the browser.
+ *
+ * @param signal - An `AbortSignal` to cancel the underlying HTTP request.
+ */
 export async function* streamChat(
 	messages: Message[],
-	settings: Settings
+	settings: Settings,
+	signal: AbortSignal
 ): AsyncGenerator<StreamEvent, void, undefined> {
 	const apiMessages = [...messages];
 
@@ -27,20 +36,17 @@ export async function* streamChat(
 		model: settings.model,
 		messages: apiMessages,
 		stream: true,
-		stream_options: { include_usage: true },
-		temperature: settings.temperature,
-		top_p: settings.topP,
-		top_k: settings.topK,
-		min_p: settings.minP,
-		presence_penalty: settings.presencePenalty,
-		repetition_penalty: settings.repetitionPenalty
+		stream_options: { include_usage: true }
 	};
 
-	if (settings.maxTokens > 0) {
-		payload.max_tokens = settings.maxTokens;
-	}
+	if (settings.temperature !== null) payload.temperature = settings.temperature;
+	if (settings.topP !== null) payload.top_p = settings.topP;
+	if (settings.topK !== null) payload.top_k = settings.topK;
+	if (settings.minP !== null) payload.min_p = settings.minP;
+	if (settings.presencePenalty !== null) payload.presence_penalty = settings.presencePenalty;
+	if (settings.repetitionPenalty !== null) payload.repetition_penalty = settings.repetitionPenalty;
+	if (settings.maxTokens !== null && settings.maxTokens > 0) payload.max_tokens = settings.maxTokens;
 
-	// Route through SvelteKit server endpoint to avoid CORS
 	const response = await fetch('/api/chat', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
@@ -48,7 +54,8 @@ export async function* streamChat(
 			apiUrl: settings.apiUrl,
 			apiKey: settings.apiKey,
 			...payload
-		})
+		}),
+		signal
 	});
 
 	if (!response.ok) {
@@ -106,9 +113,7 @@ export async function* streamChat(
 				if (typeof delta.content === 'string' && delta.content.length > 0) {
 					yield { type: 'text', text: delta.content };
 				}
-			} catch {
-				// skip malformed chunks
-			}
+			} catch {}
 		}
 	}
 }

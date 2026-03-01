@@ -6,7 +6,6 @@
 	import { defaultApiSettings } from '$lib/types';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import ChatMessage from '$lib/components/ChatMessage.svelte';
-	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
 	import MessageInput from '$lib/components/MessageInput.svelte';
 	import TopBar from '$lib/components/TopBar.svelte';
 
@@ -17,7 +16,6 @@
 	let activeId = $state<string | null>(null);
 	let input = $state('');
 	let isStreaming = $state(false);
-	let showSettings = $state(false);
 	let showSidebar = $state(true);
 	let error = $state<string | null>(null);
 	let images = $state<ImageAttachment[]>([]);
@@ -80,25 +78,6 @@
 
 		mounted = true;
 	});
-
-	async function persistSettings() {
-		saveUiPreferences({ darkMode: settings.darkMode });
-
-		const formData = new FormData();
-		formData.set('apiUrl', settings.apiUrl);
-		formData.set('apiKey', settings.apiKey);
-		formData.set('model', settings.model);
-		formData.set('systemPrompt', settings.systemPrompt);
-		formData.set('temperature', String(settings.temperature));
-		formData.set('maxTokens', String(settings.maxTokens));
-		formData.set('topP', String(settings.topP));
-		formData.set('topK', String(settings.topK));
-		formData.set('minP', String(settings.minP));
-		formData.set('presencePenalty', String(settings.presencePenalty));
-		formData.set('repetitionPenalty', String(settings.repetitionPenalty));
-
-		await fetch('?/saveSettings', { method: 'POST', body: formData });
-	}
 
 	async function newConversation() {
 		const id = crypto.randomUUID();
@@ -223,7 +202,6 @@
 
 		if (!settings.apiUrl || !settings.model) {
 			error = 'Set the API URL and model in settings first.';
-			showSettings = true;
 			return;
 		}
 
@@ -298,9 +276,10 @@
 				activeConversation.messages = activeConversation.messages.slice(0, -1);
 				conversations = [...conversations];
 			}
-		} catch (err: any) {
-			if (err.name !== 'AbortError') {
-				error = err.message || 'Failed to get response';
+		} catch (err: unknown) {
+			const isAbort = err instanceof Error && err.name === 'AbortError';
+			if (!isAbort) {
+				error = err instanceof Error ? err.message : 'Failed to get response';
 				const lastMsg = activeConversation.messages[activeConversation.messages.length - 1];
 				if (lastMsg.role === 'assistant' && !lastMsg.content) {
 					activeConversation.messages = activeConversation.messages.slice(0, -1);
@@ -332,10 +311,6 @@
 		conversations = [...conversations];
 	}
 
-	function handleSettingsUpdate(updated: Settings) {
-		settings = updated;
-		persistSettings();
-	}
 </script>
 
 <div class="flex h-dvh overflow-hidden font-sans bg-(--color-bg) text-(--color-text)">
@@ -352,7 +327,6 @@
 			onStartEdit={startEditTitle}
 			onFinishEdit={finishEditTitle}
 			onEditValueChange={(v) => (editTitleValue = v)}
-			onToggleSettings={() => (showSettings = !showSettings)}
 			onToggleDarkMode={toggleDarkMode}
 		/>
 	{/if}
@@ -364,14 +338,6 @@
 			{showSidebar}
 			onToggleSidebar={() => (showSidebar = !showSidebar)}
 		/>
-
-		{#if showSettings}
-			<SettingsPanel
-				{settings}
-				onUpdate={handleSettingsUpdate}
-				onClose={() => (showSettings = false)}
-			/>
-		{/if}
 
 		<div
 			class="flex-1 overflow-y-auto px-4 py-6"

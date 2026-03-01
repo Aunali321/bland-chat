@@ -4,14 +4,6 @@ import { conversations, messages, settings } from '$lib/server/schema';
 import { eq, asc } from 'drizzle-orm';
 import type { Message, ResponseMetrics } from '$lib/types';
 
-function newId(): string {
-	return crypto.randomUUID();
-}
-
-function now(): number {
-	return Date.now();
-}
-
 /** Deserialize a message row from DB into the app Message type */
 function rowToMessage(row: typeof messages.$inferSelect): Message {
 	const content = JSON.parse(row.content);
@@ -71,8 +63,8 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	createConversation: async ({ request }) => {
 		const data = await request.formData();
-		const id = (data.get('id') as string) || newId();
-		const timestamp = now();
+		const id = (data.get('id') as string) || crypto.randomUUID();
+		const timestamp = Date.now();
 		db.insert(conversations)
 			.values({ id, title: 'New chat', createdAt: timestamp, updatedAt: timestamp })
 			.run();
@@ -93,14 +85,14 @@ export const actions: Actions = {
 		const title = data.get('title') as string;
 		if (!id || !title) return { error: 'Missing id or title' };
 		db.update(conversations)
-			.set({ title, updatedAt: now() })
+			.set({ title, updatedAt: Date.now() })
 			.where(eq(conversations.id, id))
 			.run();
 	},
 
 	addMessage: async ({ request }) => {
 		const data = await request.formData();
-		const id = (data.get('id') as string) || newId();
+		const id = (data.get('id') as string) || crypto.randomUUID();
 		const conversationId = data.get('conversationId') as string;
 		const role = data.get('role') as 'system' | 'user' | 'assistant';
 		const content = data.get('content') as string;
@@ -127,14 +119,14 @@ export const actions: Actions = {
 				content,
 				reasoning,
 				metrics,
-				createdAt: now()
-			})
-			.run();
+			createdAt: Date.now()
+		})
+		.run();
 
-		db.update(conversations)
-			.set({ updatedAt: now() })
-			.where(eq(conversations.id, conversationId))
-			.run();
+	db.update(conversations)
+		.set({ updatedAt: Date.now() })
+		.where(eq(conversations.id, conversationId))
+		.run();
 
 		return { messageId: id };
 	},
@@ -177,7 +169,6 @@ export const actions: Actions = {
 
 		db.delete(messages).where(eq(messages.id, target.id)).run();
 
-		// Re-index positions
 		const remaining = allMsgs.filter((_, i) => i !== position);
 		for (let i = 0; i < remaining.length; i++) {
 			if (remaining[i].position !== i) {
@@ -186,31 +177,8 @@ export const actions: Actions = {
 		}
 
 		db.update(conversations)
-			.set({ updatedAt: now() })
+			.set({ updatedAt: Date.now() })
 			.where(eq(conversations.id, conversationId))
-			.run();
-	},
-
-	saveSettings: async ({ request }) => {
-		const data = await request.formData();
-		const values = {
-			id: 'default',
-			apiUrl: (data.get('apiUrl') as string) || '',
-			apiKey: (data.get('apiKey') as string) || '',
-			model: (data.get('model') as string) || '',
-			systemPrompt: (data.get('systemPrompt') as string) || 'You are a helpful assistant.',
-			temperature: parseFloat(data.get('temperature') as string) || 1.0,
-			maxTokens: parseInt(data.get('maxTokens') as string, 10) || 4096,
-			topP: parseFloat(data.get('topP') as string) || 0.95,
-			topK: parseInt(data.get('topK') as string, 10) || 20,
-			minP: parseFloat(data.get('minP') as string) || 0.0,
-			presencePenalty: parseFloat(data.get('presencePenalty') as string) || 1.5,
-			repetitionPenalty: parseFloat(data.get('repetitionPenalty') as string) || 1.0
-		};
-
-		db.insert(settings)
-			.values(values)
-			.onConflictDoUpdate({ target: settings.id, set: values })
 			.run();
 	}
 };

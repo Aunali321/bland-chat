@@ -28,11 +28,11 @@ export const settings = sqliteTable('settings', {
 	apiKey: text('api_key').notNull().default(''),
 	model: text('model').notNull().default(''),
 	systemPrompt: text('system_prompt').notNull().default('You are a helpful assistant.'),
-	temperature: real('temperature').notNull().default(1.0),
-	maxTokens: integer('max_tokens').notNull().default(4096),
-	topP: real('top_p').notNull().default(0.95),
-	topK: integer('top_k').notNull().default(20),
-	minP: real('min_p').notNull().default(0.0),
-	presencePenalty: real('presence_penalty').notNull().default(1.5),
-	repetitionPenalty: real('repetition_penalty').notNull().default(1.0)
+	temperature: real('temperature'),
+	maxTokens: integer('max_tokens'),
+	topP: real('top_p'),
+	topK: integer('top_k'),
+	minP: real('min_p'),
+	presencePenalty: real('presence_penalty'),
+	repetitionPenalty: real('repetition_penalty')
 });

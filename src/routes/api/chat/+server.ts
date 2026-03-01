@@ -36,7 +36,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 	}
 
-	// Stream the SSE response through
 	return new Response(upstream.body, {
 		status: 200,
 		headers: {

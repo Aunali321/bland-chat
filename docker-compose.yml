@@ -1,0 +1,14 @@
+services:
+  bland-chat:
+    image: ghcr.io/aunali321/bland-chat:main
+    ports:
+      - "3000:3000"
+    volumes:
+      - bland-chat-data:/app/data
+    environment:
+      PORT: 3000
+      DATABASE_PATH: /app/data/bland-chat.sqlite
+    restart: unless-stopped
+
+volumes:
+  bland-chat-data:

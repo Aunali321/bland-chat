@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Dependencies (re-installed inside the image)
+node_modules
+
+# Local build output (rebuilt inside the image)
+build
+.svelte-kit
+.output
+
+# Local data / database files
+data
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor / OS artefacts
+.DS_Store
+Thumbs.db
+*.swp
+
+# Docs / misc
+README.md
+references
+WORK_LOG.md

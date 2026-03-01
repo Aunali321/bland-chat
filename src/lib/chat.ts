@@ -91,7 +91,7 @@ export async function runStreamingChat(
 		apiUsage: null
 	};
 
-	const stream = streamChat(messagesToSend, settings);
+	const stream = streamChat(messagesToSend, settings, signal);
 
 	for await (const event of stream) {
 		if (signal.aborted) break;
